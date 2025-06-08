@@ -37,9 +37,6 @@ def get_response(dialog_identifier=' TeamO1nFLdmQe9tm_4'):
         return None
 
 def reset_context(dialog_identifier=' TeamO1nFLdmQe9tm_4'):
-    """
-    Сброс контекста диалога.
-    """
     url = f"{BASE_URL}/CompleteSession"
     payload = {
         "operatingSystemCode": OPERATING_SYSTEM_CODE,

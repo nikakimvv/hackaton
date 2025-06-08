@@ -3,12 +3,7 @@ from django.shortcuts import render
 from .forms import JobSearchForm
 from .models import Vacancy
 from .utils import *
-import time
 import statistics
-from collections import Counter
-from django.db.models import Min, Max, Count
-from django.db.models.functions import Cast
-from django.db.models import IntegerField
 
 def format_salary(salary):
     if not salary:
@@ -30,16 +25,15 @@ def convert_to_rubles(salary, currency):
     if not salary or not currency:
         return None
     
-    # Курсы валют (можно вынести в конфигурацию или получать через API)
     exchange_rates = {
         'RUR': 1,
         'RUB': 1,
-        'USD': 90,  # Примерный курс
-        'EUR': 100,  # Примерный курс
-        'KZT': 0.2,  # Примерный курс
-        'BYR': 30,   # Примерный курс
-        'UAH': 2.5,  # Примерный курс
-        'UZS': 0.007 # Примерный курс
+        'USD': 90,
+        'EUR': 100,
+        'KZT': 0.2,
+        'BYR': 30,
+        'UAH': 2.5,
+        'UZS': 0.007
     }
     
     rate = exchange_rates.get(currency.upper(), 1)
@@ -83,7 +77,7 @@ def job_search_view(request):
                             currency=vacancy.get('salary', {}).get('currency'),
                             employer=vacancy['employer']['name'],
                             url=vacancy['alternate_url'],
-                            user_salary=user_salary  # Сохраняем зарплату пользователя
+                            user_salary=user_salary
                         )
                         saved_vacancies.append(saved_vacancy)
                     except Exception as e:
@@ -119,20 +113,16 @@ def job_search_view(request):
     return render(request, 'vacancies/job_search.html', context)
 
 def statistics_view(request):
-    # Получаем последнюю введенную вакансию для определения последнего запроса
     last_vacancy = Vacancy.objects.order_by('-id').first()
     last_query = last_vacancy.query if last_vacancy else None
 
-    # Если есть последний запрос, фильтруем вакансии по нему
     if last_query:
         vacancies = Vacancy.objects.filter(query=last_query)
     else:
-        vacancies = Vacancy.objects.none() # Если запросов нет, то и вакансий нет
+        vacancies = Vacancy.objects.none()
     
-    # Общее количество вакансий
     total_vacancies = vacancies.count()
     
-    # Конвертируем все зарплаты в рубли
     salaries_in_rubles = []
     formatted_vacancies = []
     for vacancy in vacancies:
@@ -152,18 +142,15 @@ def statistics_view(request):
             'url': vacancy.url
         })
     
-    # Статистика по зарплатам
     median_salary = int(statistics.median(salaries_in_rubles)) if salaries_in_rubles else 0
     min_salary = min(salaries_in_rubles) if salaries_in_rubles else 0
     max_salary = max(salaries_in_rubles) if salaries_in_rubles else 0
     
-    # Создаем диапазоны зарплат для гистограммы
     salary_ranges = [
         '0-50k', '50k-100k', '100k-150k', '150k-200k',
         '200k-250k', '250k-300k', '300k-350k', '350k-400k', '400k+'
     ]
     
-    # Подсчитываем количество вакансий в каждом диапазоне
     salary_counts = [0] * len(salary_ranges)
     for salary in salaries_in_rubles:
         if salary <= 50000:
@@ -185,7 +172,6 @@ def statistics_view(request):
         else:
             salary_counts[8] += 1
     
-    # Получаем последнюю введенную зарплату (уже из последней вакансии)
     user_salary = last_vacancy.user_salary if last_vacancy else None
     
     context = {
