@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск вакансий</title>
+</head>
+<body>
+    <h1>Поиск вакансий</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Найти</button>
+    </form>
+
+    {% if vacancies %}
+        <h2>Найденные вакансии:</h2>
+        <ul>
+            {% for vacancy in vacancies %}
+                <li>
+                    <a href="{{ vacancy.url }}" target="_blank">{{ vacancy.title }}</a><br>
+                    Зарплата: 
+                    {% if vacancy.salary_from or vacancy.salary_to %}
+                        от {{ vacancy.salary_from }} до {{ vacancy.salary_to }} {{ vacancy.currency }}
+                    {% else %}
+                        Не указана
+                    {% endif %}
+                    <br>
+                    Работодатель: {{ vacancy.employer }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Нет вакансий, соответствующих вашему запросу.</p>
+    {% endif %}
+</body>
+</html>
