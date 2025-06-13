@@ -38,10 +38,6 @@ def send_request(message, dialog_identifier=' TeamO1nFLdmQe9tm_4'):
         "Message": message
     }
     response = requests.post(url, json=payload)
-    if response.status_code == 200:
-        print("Запрос успешно отправлен.")
-    else:
-        print(f"Ошибка при отправке запроса: {response.status_code}, {response.text}")
 
 def get_response(dialog_identifier=' TeamO1nFLdmQe9tm_4'):
     url = f"{BASE_URL}/GetNewResponse"
@@ -52,16 +48,11 @@ def get_response(dialog_identifier=' TeamO1nFLdmQe9tm_4'):
     }
     response = requests.post(url, json=payload)
     if response.status_code == 200:
-        print("Ответ получен:", response.json())
         return response.json()
     else:
-        print(f"Ошибка при получении ответа: {response.status_code}, {response.text}")
         return None
 
 def reset_context(dialog_identifier=' TeamO1nFLdmQe9tm_4'):
-    """
-    Сброс контекста диалога.
-    """
     url = f"{BASE_URL}/CompleteSession"
     payload = {
         "operatingSystemCode": OPERATING_SYSTEM_CODE,
@@ -69,7 +60,18 @@ def reset_context(dialog_identifier=' TeamO1nFLdmQe9tm_4'):
         "dialogIdentifier": dialog_identifier
     }
     response = requests.post(url, json=payload)
-    if response.status_code == 200:
-        print("Контекст успешно сброшен.")
-    else:
-        print(f"Ошибка при сбросе контекста: {response.status_code}, {response.text}")
+
+
+def analyze_vacancy(vacancy, profession):
+    prompt = f"""
+        Требуется определить: эквивалентна ли вакансия {vacancy} по смыслу вакансии {profession}.
+        Формат ответа: 
+        Да (если вакансия экивалентна)
+        Нет (если вакансия отличается по смыслу)
+    """
+    send_request(prompt)
+    response = get_response()
+    if response:
+        if response['data']['context'] is not None:
+            return response['data']['context'][0]['responseMessage']
+    reset_context()
