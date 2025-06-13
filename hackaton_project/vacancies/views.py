@@ -31,9 +31,7 @@ def job_search_view(request):
 
             saved_vacancies = []
             for vacancy in vacancies_data:
-                target_text = run_llm(vacancy['name'], profession)
-                # print(vacancy['name'], profession)
-                print(target_text)
+                target_text = ''
                 salary = vacancy.get('salary', {})
                 if target_text == 'Да':
                     saved_vacancy = Vacancy.objects.create(
@@ -48,6 +46,9 @@ def job_search_view(request):
                     saved_vacancies.append(saved_vacancy)
                     export_to_csv()
                     time.sleep(0.1)
+                # saved_vacancies.append(saved_vacancy)
+                # export_to_csv()
+                # time.sleep(0.1)
 
             return render(request, 'vacancies/job_search.html', {
                 'form': form,

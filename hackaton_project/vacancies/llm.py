@@ -1,5 +1,3 @@
-from .models import Vacancy
-import csv
 import requests
 
 BASE_URL = "https://gpt.orionsoft.ru/api/External" 
@@ -7,26 +5,6 @@ API_KEY = "OrVrQoQ6T43vk0McGmHOsdvvTiX446RJ"
 OPERATING_SYSTEM_CODE = 12
 USER_DOMAIN_NAME = "TeamO1nFLdmQe9tm"
 
-def get_region_id(region_name):
-    url = "https://api.hh.ru/areas" 
-    response = requests.get(url)
-    if response.status_code == 200:
-        areas = response.json()
-        for country in areas:
-            for area in country['areas']:
-                if area['name'].lower() == region_name.lower():
-                    return area['id']
-    return None
-
-def export_to_csv():
-    with open('data.csv', mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        headers = [field.name for field in Vacancy._meta.fields]
-        writer.writerow(headers)
-        for obj in Vacancy.objects.all():
-            row = [getattr(obj, field.name) for field in Vacancy._meta.fields]
-            writer.writerow(row)
-    
 def send_request(message, dialog_identifier=' TeamO1nFLdmQe9tm_4'):
     url = f"{BASE_URL}/PostNewRequest"
     payload = {
@@ -75,19 +53,19 @@ def reset_context(dialog_identifier=' TeamO1nFLdmQe9tm_4'):
         print(f"Ошибка при сбросе контекста: {response.status_code}, {response.text}")
 
 
-def run_llm(target_text, profession):
-    prompt = f"""
-        Требуется определить: схожа ли вакансия {target_text} по смыслу с вакансией {profession}. Ответ
-        должен быть ТОЛЬКО одним словом.
-        Формат ответа: 
-        Да (если вакансия схожа по смыслу)
-        Нет (если вакансия отличается по смыслу)
-    """
-    reset_context()
-    send_request(prompt)
-    response = get_response()
-    print(response)
-    if response:
-        if response['data'] is not None:
-            return response['data']['context'][0]['responseMessage']
-        
+if __name__ == "__main__":
+    test_arr = ['Аналитик программист', 'Дата сайнтист', 'MLOps Инженер', 'Абоба', 'Аналитик']
+    title = 'Аналитик'
+    for el in test_arr:
+        prompt = f"""
+            Требуется определить: эквивалентна ли вакансия {el} по смыслу вакансии {title}.
+            Формат ответа: 
+            Да (если вакансия экивалентна)
+            Нет (если вакансия отличается по смыслу)
+        """
+        send_request(prompt)
+        response = get_response()
+        if response:
+            print("Ответ модели:", response.get("message"))
+        reset_context()
+
